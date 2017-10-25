@@ -2,6 +2,10 @@
     "name": "hola_express",
     "version": "1.0.0",
     "dependencies": {
-        "express": "^4.16.2"
+        "body-parser": "^1.18.2",
+        "express": "^4.16.2",
+        "mongodb-autoincrement": "^1.0.1",
+        "mongoose": "^4.12.4",
+        "nodemon": "^1.12.1"
     }
 }

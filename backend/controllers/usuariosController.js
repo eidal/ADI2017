@@ -27,7 +27,7 @@ exports.findAllUsuarios = function(pet, resp){
 exports.findByIdUsuario = function(pet, resp){
     Usuario.findById(pet.params.id, function(error, usuario){
         if(error) 
-            return resp.send(500, error.message);
+            return resp.status(500).send(error.message);
         if(usuario){
             resp.status(200)
                     .jsonp(usuario);
@@ -51,12 +51,22 @@ exports.addUsuario = function(pet, resp){
         contrasena: pet.body.contrasena,
         edad: pet.body.edad
     });
-    usuario.save(function(error, usuario){
-        if(error)
-            return resp.status(500).send(error.message);
-        resp.status(201)
-                .send({token: service.createToken(usuario)});
-        resp.end();
+
+    //al hacer test me he dado cuenta que el login es por email, no se debe repetir
+    Usuario.findOne({email: pet.body.email.toLowerCase()}, function(err, usuarioExiste) {
+        if(usuarioExiste){
+            return resp.status(400)
+                            .send({mensaje: 'Email en uso, seleccione otro'});
+        }
+        else{
+            usuario.save(function(error, usuario){
+                if(error)
+                    return resp.status(500).send(error.message);
+                resp.status(201)
+                        .send({token: service.createToken(usuario)});
+                resp.end();
+            });
+        }
     });
 };
 
@@ -72,12 +82,12 @@ exports.updateUsuario = function(pet, resp){
                         usuario[key] = pet.body[key];
                     }
                 }
-                usuario.save(function(error){
+                usuario.save(function(error,usuario){
                     if(error)
-                        return resp.status(500).send(error.message);
+                        return resp.status(500).send(error.message);  
                     resp.status(204)
-                            .send('Datos de usuario modificados correctamente');
-                    resp.end();
+                            .jsonp(usuario);
+                        resp.end();
                 });
             }
             else
@@ -95,7 +105,6 @@ exports.updateUsuario = function(pet, resp){
  */
 exports.deleteUsuario = function(pet, resp){
     Usuario.findById(pet.params.id, function(error, usuario){
-        console.log('usuario.id: '+usuario.id);
         if(usuario){
             if (usuario.id==pet.usuarioSesion){
                 usuario.remove(function(error){
@@ -141,4 +150,15 @@ exports.deleteUsuario = function(pet, resp){
         return resp.status(404)
                         .send('No existe el usuario con email '+pet.body.email);
     });
-};
+  };
+
+  exports.findByEmailUsuario = (emailUsuario) => {
+    Usuario.findOne({email: emailUsuario.toLowerCase()}, function(err, usuario) {
+        if(usuario){
+            return usuario._id;
+        }
+        else{
+            return -1;
+        }
+    });
+  };

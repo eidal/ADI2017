@@ -17,6 +17,9 @@ var router = express.Router();
 //Cargamos controller Usuario
 var usuariosController = require('./controllers/usuariosController');
 
+//Cargamos funcionalidad para sesion
+var middleware = require('./services/middleware');
+
 //En Express asociamos un método HTTP y una URL con un callback a ejecutar
 router.get('/', function(pet,resp) {
    //Tenemos una serie de primitivas para devolver la respuesta HTTP
@@ -34,9 +37,11 @@ router.route('/usuarios')
 
 router.route('/usuarios/:id')
   .get(usuariosController.findByIdUsuario)
-  .put(usuariosController.updateUsuario)
-  .delete(usuariosController.deleteUsuario);
-  
+  .put(middleware.ensureAuthenticated,usuariosController.updateUsuario)
+  .delete(middleware.ensureAuthenticated,usuariosController.deleteUsuario);
+ 
+router.route('/usuarios/login')
+  .post(usuariosController.emailLogin);
 // ROUTES USUARIOS END
 
 app.use('/api',router);

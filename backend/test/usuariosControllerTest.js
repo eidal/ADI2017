@@ -4,10 +4,44 @@ var app = require("../app");
 var supertest = require("supertest")(app);
 var mongoose = require("mongoose");
 var Usuario = require("../models/usuario")
-var UsuarioController = require("../controllers/usuariosController");
-after (() => {
-    Usuario.findOneAndRemove({email: "usuariotest1@gmail.com"}, function(err, usuario) {
+
+//Variables auxiliares para guardar id y token usuario a testear
+var idUsuarioInsertado = 9999;
+var tokenUsuario=""
+//Necesito un segundo token correcto para una de las pruebas
+var tokenUsuario2=""
+//Vacío usuarios
+before (() => {
+    Usuario.remove().exec();
+});
+
+//Antes de cada test creo y asigno valor id y token usuario
+beforeEach( (done) => {
+     supertest
+    .post("/api/usuarios")
+    .send({
+        "nombre": "Usuario test 2",
+        "email": "usuariotest1@gmail.com",
+        "contrasena": "123456",
+        "edad": '36'
+    })
+    .set('Content-type', 'application/json')
+    .end((err,res) => {
+        if(err){
+            idUsuarioInsertado=-3;
+        }
+        else{
+            tokenUsuario=res.body.token;
+            idUsuarioInsertado=res.body.id;
+        }
+        done();
+        });
+});
+
+afterEach((done) => {
+    Usuario.findOneAndRemove({email: "usuariotest1@gmail.com".toLowerCase()}, function(err, usuarioExiste){
     });
+    done();
 });
 
 describe("/api/usuarios", () => {
@@ -16,14 +50,14 @@ describe("/api/usuarios", () => {
         supertest
             .post("/api/usuarios")
             .send({
-                "nombre": "Usuario test 1",
-                "email": "usuariotest1@gmail.com",
+                "nombre": "Usuario test 2",
+                "email": "usuariotest2@gmail.com",
                 "contrasena": "123456",
                 "edad": '36'
             })
             .set('Content-type', 'application/json')
-            .expect(201)
             .end((err,res) => {
+                res.status.should.equal(201);
                 res.body.token.should.not.equal("");
                 done();
             });
@@ -34,22 +68,25 @@ describe("/api/usuarios", () => {
             .post("/api/usuarios")
             .send({
                 "nombre": "Usuario test 2",
-                "email": "usuariotest1@gmail.com",
+                "email": "usuariotest2@gmail.com",
                 "contrasena": "123456",
                 "edad": '42'
             })
             .set('Content-type', 'application/json')
-            .expect(400)
-            .end(done);
+            .end((err,res) => {
+                res.status.should.equal(400);
+                res.body.message.should.equal("Email en uso, seleccione otro");
+                done();
+            });
             
     });
 
     it("[GET] Lista de todos los usuarios - Código 200 OK",(done) => {
         supertest
             .get("/api/usuarios")
-            .expect(200)
             .end((err,res) => {
-                res.body.length.should.equal(1);
+                res.status.should.equal(200);
+                res.body.length.should.equal(2);
             done();
             });
     });
@@ -65,8 +102,8 @@ describe("/api/usuarios/login",() => {
                   "contrasena": "123456"
             })
             .set('Content-type', 'application/json')
-            .expect(200)
             .end((err,res) => {
+               res.status.should.equal(200);
                res.body.token.should.not.equal("");
                 done();
             });
@@ -80,40 +117,59 @@ describe("/api/usuarios/login",() => {
                   "contrasena": "1234567"
             })
             .set('Content-type', 'application/json')
-            .expect(401)
-            .end(done);
-            
+            .end((err,res) => {
+                res.status.should.equal(401);
+                res.body.message.should.equal("Credenciales incorrectas pruebe de nuevo");
+                done();
+            });
     });
 
     it("[POST] Login usuario - Código 404 No existe el usuario",(done) => {
         supertest
             .post("/api/usuarios/login")
             .send({
-                  "email": "usuariotest2@gmail.com",
+                  "email": "usuariotest3@gmail.com",
                   "contrasena": "123456"
             })
             .set('Content-type', 'application/json')
-            .expect(404)
-            .end(done);
+            .end((err,res) => {
+                res.status.should.equal(404);
+                res.body.message.should.equal("No existe el usuario con ese email");
+                done();
+            });
             
     });
 });
 
 describe("/api/usuarios/:id", () => {
-    var idUsuarioInsertado = 0;
-    var tokenUsuario="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjY2LCJpYXQiOjE1MDkyMjUyODIsImV4cCI6MTUxMDQzODQ4Mn0.hZddiJ6Y9JSiE1F6uwoUffYwqHEv_d_kclI7R-WHiaY";
-    
-    beforeEach ((done) => {
-        idUsuarioInsertado=UsuarioController.findByEmailUsuario("usuariotest1@gmail.com");
-        done();
-    });
 
-    it("[GET] Consulta usuario por ID - Código 200 OK"+idUsuarioInsertado,(done) => {
+    before( (done) => {
+        supertest
+       .post("/api/usuarios")
+       .send({
+           "nombre": "Usuario test 3",
+           "email": "usuariotest4@gmail.com",
+           "contrasena": "123456",
+           "edad": '36'
+       })
+       .set('Content-type', 'application/json')
+       .end((err,res) => {
+           if(err){
+               tokenUsuario2="";
+           }
+           else{
+               tokenUsuario2=res.body.token;
+           }
+           done();
+           });
+   });
+
+    it("[GET] Consulta usuario por ID - Código 200 OK",(done) => {
         supertest
              .get("/api/usuarios/"+idUsuarioInsertado)
-             .expect(200)
              .end((err,res) => {
-                  res.body.nombre.should.equal("Usuario test 1");
+                  res.status.should.equal(200);
+                  res.body.nombre.should.equal("Usuario test 2");
                   res.body.email.should.equal("usuariotest1@gmail.com");
                   res.body.contrasena.should.equal("123456");
                   res.body.edad.should.equal(36);
@@ -121,10 +177,128 @@ describe("/api/usuarios/:id", () => {
               });
       });
 
-      it("[GET] Consulta usuario por ID - Código 401 Usuario no existe",(done) => {
+      it("[GET] Consulta usuario por ID - Código 404 Usuario no existe",(done) => {
         supertest
-             .get("/api/usuarios/50000")
-             .expect(404)
-             .end(done);
+             .get("/api/usuarios/5000")
+             .end((err,res) => {
+                res.status.should.equal(404);
+                res.body.message.should.equal("No existe el usuario con id 5000");
+                done();
+             });
       });
+
+      it("[PUT] Modifica usuario por ID - Código 403 sin cabecera autorización",(done) => {
+        supertest
+             .put("/api/usuarios/"+idUsuarioInsertado)
+             .send({
+                "nombre": "Usuario test 3",
+                "email": "usuariotest4@gmail.com",
+                "contrasena": "123456",
+                "edad": '36'
+             })
+             .set('Content-type', 'application/json')
+             .end((err,res) => {
+                  res.status.should.equal(403);
+                  res.body.message.should.equal("Tu petición no tiene cabecera de autorización");
+                  done();
+              });
+      });
+
+      it("[PUT] Modifica usuario por ID - Código 404 usuario no existe",(done) => {
+        supertest
+             .put("/api/usuarios/5000")
+             .send({
+                "nombre": "Usuario test 3",
+                "email": "usuariotest4@gmail.com",
+                "contrasena": "123456",
+                "edad": '36'
+             })
+             .set('Content-type', 'application/json')
+             .set('Authorization','token '+tokenUsuario)
+             .end((err,res) => {
+                  res.status.should.equal(404);
+                  res.body.message.should.equal("No existe el usuario con id 5000");
+                  done();
+              });
+      });
+
+      it("[PUT] Modifica usuario por ID - Código 401 no está autorizado",(done) => {
+        supertest
+             .put("/api/usuarios/"+idUsuarioInsertado)
+             .send({
+                "nombre": "Usuario test 3",
+                "email": "usuariotest4@gmail.com",
+                "contrasena": "123456",
+                "edad": '36'
+             })
+             .set('Content-type', 'application/json')
+             .set('Authorization','token '+tokenUsuario2)
+             .end((err,res) => {
+                  res.status.should.equal(401);
+                  res.body.message.should.equal("No estás autorizado para realizar este cambio");
+                  done();
+              });
+      });
+
+      it("[PUT] Modifica usuario por ID - Código 204 Cambio correcto",(done) => {
+        supertest
+             .put("/api/usuarios/"+idUsuarioInsertado)
+             .send({
+                "nombre": "Usuario test 3",
+                "email": "usuariotest4@gmail.com",
+                "contrasena": "123456",
+                "edad": '36'
+             })
+             .set('Content-type', 'application/json')
+             .set('Authorization','token '+tokenUsuario)
+             .end((err,res) => {
+                res.status.should.equal(204);
+                done();
+              });
+      });
+
+      it("[DELETE] Borrar usuario por ID - Código 403 sin cabecera autorización",(done) => {
+        supertest
+             .delete("/api/usuarios/"+idUsuarioInsertado)
+             .end((err,res) => {
+                res.status.should.equal(403);
+                res.body.message.should.equal("Tu petición no tiene cabecera de autorización");
+                done();
+              });
+      });
+
+      it("[DELETE] Borrar usuario por ID - Código 404 usuario no existe",(done) => {
+        supertest
+             .delete("/api/usuarios/5000")
+             .set('Authorization','token '+tokenUsuario)
+             .end((err,res) => {
+                res.status.should.equal(404);
+                res.body.message.should.equal("No existe el usuario con id 5000");
+                done();
+              });
+      });
+
+      it("[DELETE] Borrar usuario por ID - Código 401 no está autorizado",(done) => {
+        supertest
+             .delete("/api/usuarios/"+idUsuarioInsertado)
+             .set('Authorization','token '+tokenUsuario2)
+             .end((err,res) => {
+                res.status.should.equal(401);
+                res.body.message.should.equal("No estás autorizado para realizar este cambio");
+                done();
+              });
+      });
+
+      it("[DELETE] Borrar usuario por ID - Código 200 Cambio correcto",(done) => {
+        supertest
+             .delete("/api/usuarios/"+idUsuarioInsertado)
+             .set('Authorization','token '+tokenUsuario)
+             .expect(200)
+             .end((err,res) => {
+                res.status.should.equal(200);
+                res.body.message.should.equal("Usuario borrado correctamente");
+                done();;
+              });
+      });
+
 });

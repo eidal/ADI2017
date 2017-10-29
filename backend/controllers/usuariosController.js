@@ -14,7 +14,7 @@ var service = require('../services/services');
 exports.findAllUsuarios = function(pet, resp){
     Usuario.find(function(error, usuarios){
         if(error)
-            resp.send(500, error.message);
+            resp.status(500).send({message: error.message});
         resp.status(200)
                 .jsonp(usuarios);
         resp.end();
@@ -27,7 +27,7 @@ exports.findAllUsuarios = function(pet, resp){
 exports.findByIdUsuario = function(pet, resp){
     Usuario.findById(pet.params.id, function(error, usuario){
         if(error) 
-            return resp.status(500).send(error.message);
+            return resp.status(500).send({message: error.message});
         if(usuario){
             resp.status(200)
                     .jsonp(usuario);
@@ -35,7 +35,7 @@ exports.findByIdUsuario = function(pet, resp){
         }  
         else
             return resp.status(404)
-                            .send('No existe el usuario con id '+pet.params.id);
+                            .send({message: "No existe el usuario con id "+pet.params.id});
     });
 };
 
@@ -56,14 +56,14 @@ exports.addUsuario = function(pet, resp){
     Usuario.findOne({email: pet.body.email.toLowerCase()}, function(err, usuarioExiste) {
         if(usuarioExiste){
             return resp.status(400)
-                            .send({mensaje: 'Email en uso, seleccione otro'});
+                            .send({message: "Email en uso, seleccione otro"});
         }
         else{
             usuario.save(function(error, usuario){
                 if(error)
-                    return resp.status(500).send(error.message);
+                    return resp.status(500).send({message: error.message});
                 resp.status(201)
-                        .send({token: service.createToken(usuario)});
+                        .send({token: service.createToken(usuario), id: usuario._id});
                 resp.end();
             });
         }
@@ -84,7 +84,7 @@ exports.updateUsuario = function(pet, resp){
                 }
                 usuario.save(function(error,usuario){
                     if(error)
-                        return resp.status(500).send(error.message);  
+                        return resp.status(500).send({message: error.message});  
                     resp.status(204)
                             .jsonp(usuario);
                         resp.end();
@@ -92,11 +92,11 @@ exports.updateUsuario = function(pet, resp){
             }
             else
                 return resp.status(401)
-                                .send('No estás autorizado para realizar este cambio');
+                                .send({message: "No estás autorizado para realizar este cambio"});
         }
         else
             return resp.status(404).
-                            send('No existe el usuario con id '+pet.params.id);
+                            send({message: "No existe el usuario con id "+pet.params.id});
     });
 };
 
@@ -110,19 +110,19 @@ exports.deleteUsuario = function(pet, resp){
                 usuario.remove(function(error){
                     if(error){
                         return resp.status(500)
-                                        .send(error.message);
+                                        .send({message: error.message});
                     }
                     resp.status(200)
-                            .send('Usuario borrado correctamente');
+                            .send({message: "Usuario borrado correctamente"});
                 });
             }
             else
             return resp.status(401)
-                            .send('No estás autorizado para realizar este cambio');
+                            .send({message: "No estás autorizado para realizar este cambio"});
         }
         else
             return resp.status(404)
-                                .send('No existe el usuario con id '+pet.params.id);
+                                .send({message: "No existe el usuario con id "+pet.params.id});
     });
 };
 
@@ -139,26 +139,15 @@ exports.deleteUsuario = function(pet, resp){
     	if(usuario){
             if(usuario.contrasena.localeCompare(pet.body.contrasena)==0){
                 return resp
-        	        .status(200)
+                    .status(200)
                         .send({token: service.createToken(usuario)});
             }
             else
                 return resp.status(401)
-                                .send('Credenciales incorrectas pruebe de nuevo');
+                                .send({message: "Credenciales incorrectas pruebe de nuevo"});
         }
         else
         return resp.status(404)
-                        .send('No existe el usuario con email '+pet.body.email);
-    });
-  };
-
-  exports.findByEmailUsuario = (emailUsuario) => {
-    Usuario.findOne({email: emailUsuario.toLowerCase()}, function(err, usuario) {
-        if(usuario){
-            return usuario._id;
-        }
-        else{
-            return -1;
-        }
+                        .send({message: "No existe el usuario con ese email"});
     });
   };

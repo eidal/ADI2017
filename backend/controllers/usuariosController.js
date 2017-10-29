@@ -1,5 +1,5 @@
 //Incluimos el modelo
-var Usuario = require('../models/usuario')
+var Usuario = require('../models/usuario');
 
 //Cargamos servicio
 var service = require('../services/services');
@@ -95,8 +95,8 @@ exports.updateUsuario = function(pet, resp){
                                 .send({message: "No estás autorizado para realizar este cambio"});
         }
         else
-            return resp.status(404).
-                            send({message: "No existe el usuario con id "+pet.params.id});
+            return resp.status(404)
+                            .send({message: "No existe el usuario con id "+pet.params.id});
     });
 };
 

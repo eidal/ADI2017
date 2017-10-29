@@ -52,7 +52,7 @@ router.route('/usuarios/login')
 
 router.route('/viajes')
 .get(viajesController.findAllViajes)
-.post(viajesController.addViaje);
+.post(middleware.ensureAuthenticated,viajesController.addViaje);
 
 router.route('/viajes/:id')
 .get(viajesController.findByIdViaje)

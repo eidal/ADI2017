@@ -17,6 +17,7 @@ var router = express.Router();
 //Cargamos controller Usuario
 var usuariosController = require('./controllers/usuariosController');
 var viajesController = require('./controllers/viajesController');
+var reservasController = require('./controllers/reservasController');
 
 //Cargamos funcionalidad para sesion
 var middleware = require('./services/middleware');
@@ -60,6 +61,23 @@ router.route('/viajes/:id')
 .delete(middleware.ensureAuthenticated,viajesController.deleteViaje);
 
 // ROUTES VIAJES END
+
+// ROUTES RESERVAS BEGIN
+
+router.route('/reservas')
+.post(middleware.ensureAuthenticated,reservasController.addReserva);
+
+router.route('/reservas/:id')
+.get(reservasController.findByIdReserva)
+.put(middleware.ensureAuthenticated,reservasController.updateReserva)
+.delete(middleware.ensureAuthenticated,reservasController.deleteReserva);
+
+router.route('/reservas/viaje/:viaje')
+  .get(reservasController.findAllReservasViaje);
+
+router.route('/reservas/:usuario/:viaje')
+  .get(reservasController.findAllReservasUsuario);
+// ROUTES RESERVAS END
 
 
 app.use('/api',router);

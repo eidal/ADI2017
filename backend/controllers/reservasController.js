@@ -122,7 +122,7 @@ exports.deleteReserva = function(pet, resp){
                                         .send({message: error.message});
                     }
                     resp.status(200)
-                            .send({message: "Reserva borrrada correctamente"});
+                            .send({message: "Reserva borrada correctamente"});
                 });
             }
             else
@@ -131,7 +131,7 @@ exports.deleteReserva = function(pet, resp){
         }
         else
             return resp.status(404)
-                                .send({message: "No existe el viaje con id "+pet.params.id});
+                                .send({message: "No existe la reserva con id "+pet.params.id});
     });
 };
 

@@ -77,18 +77,23 @@ exports.updateReserva = function(pet, resp){
         if(reserva){
             if (reserva.usuario==pet.usuarioSesion){
                 if(reserva.viaje==pet.body.viaje){
-                    for (var key in pet.body) {
-                        if (pet.body.hasOwnProperty(key)) {
-                            reserva[key] = pet.body[key];
+                    if(reserva.plazas>=pet.body.plazas){
+                        for (var key in pet.body) {
+                            if (pet.body.hasOwnProperty(key)) {
+                                reserva[key] = pet.body[key];
+                            }
                         }
+                        reserva.save(function(error,reserva){
+                            if(error)
+                                return resp.status(500).send({message: error.message});  
+                            resp.status(204)
+                                .jsonp(reserva);
+                            resp.end();
+                        });
                     }
-                    reserva.save(function(error,reserva){
-                        if(error)
-                            return resp.status(500).send({message: error.message});  
-                        resp.status(204)
-                            .jsonp(reserva);
-                        resp.end();
-                    });
+                    else
+                        return resp.status(400)
+                                        .send({message: "Número de plazas reservadas superior a disponibles"});
                 }
                 else
                     return resp.status(400)
@@ -107,7 +112,7 @@ exports.updateReserva = function(pet, resp){
 /**
  * DELETE - Borra un registro
  */
-exports.deleteViaje = function(pet, resp){
+exports.deleteReserva = function(pet, resp){
     Reserva.findById(pet.params.id, function(error, reserva){
         if(reserva){
             if (reserva.usuario==pet.usuarioSesion){

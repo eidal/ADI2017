@@ -16,6 +16,7 @@ var router = express.Router();
 
 //Cargamos controller Usuario
 var usuariosController = require('./controllers/usuariosController');
+var viajesController = require('./controllers/viajesController');
 
 //Cargamos funcionalidad para sesion
 var middleware = require('./services/middleware');
@@ -39,10 +40,27 @@ router.route('/usuarios/:id')
   .get(usuariosController.findByIdUsuario)
   .put(middleware.ensureAuthenticated,usuariosController.updateUsuario)
   .delete(middleware.ensureAuthenticated,usuariosController.deleteUsuario);
- 
+
+router.route('/usuarios/viajes/:id')
+  .get(viajesController.findAllViajesUsuario);  
+
 router.route('/usuarios/login')
   .post(usuariosController.emailLogin);
 // ROUTES USUARIOS END
+
+// ROUTES VIAJES BEGIN
+
+router.route('/viajes')
+.get(viajesController.findAllViajes)
+.post(viajesController.addViaje);
+
+router.route('/viajes/:id')
+.get(viajesController.findByIdViaje)
+.put(middleware.ensureAuthenticated,viajesController.updateViaje)
+.delete(middleware.ensureAuthenticated,viajesController.deleteViaje);
+
+// ROUTES VIAJES END
+
 
 app.use('/api',router);
 

@@ -47,34 +47,29 @@ exports.addViaje = function(pet, resp){
     var viaje = new Viaje({
         //valor de id sin importancia mongodb-autoincrement
         _id: 0, 
-        usuario: pet.body.idusuario,
+        usuario: pet.usuarioSesion,
         titulo: pet.body.titulo,
         descripcion: pet.body.descripcion,
         desdeCiudad: pet.body.desdeciudad,
         hastaCiudad: pet.body.hastaciudad,
-        fecha: pet.body.fecha,
+        fecha: Date.parse(pet.body.fecha),
         plazas: pet.body.plazas,
         importe: pet.body.importe
     });
 
-    Usuario.findById(pet.params.idusuario, function(error, usuario) {
+    Usuario.findById(pet.usuarioSesion, function(error, usuario) {
         if(usuario){
-            if (usuario.id==pet.usuarioSesion){
-                viaje.save(function(error, viaje){
-                    if(error)
-                        return resp.status(500).send({message: error.message});
-                    resp.status(201)
-                            .jsonp(viaje);
-                    resp.end();
-                });
-            }
-            else
-                return resp.status(401)
-                                .send({message: "No estás autorizado para realizar este cambio"});
+            viaje.save(function(error, viaje){
+                if(error)
+                    return resp.status(500).send({message: error.message});
+                resp.status(201)
+                          .jsonp(viaje);
+                resp.end();
+            });
         }
         else
             return resp.status(404)
-                           .send({message: "No existe el usuario con id "+pet.params.usuario});
+                           .send({message: "Error de sesión, volver a intentar"});
     });
 };
 
@@ -143,9 +138,11 @@ exports.deleteViaje = function(pet, resp){
   */
 
   exports.findAllViajesUsuario = function(pet, resp) {
-	Usuario.findOne({email: pet.body.email.toLowerCase()}, function(err, usuario) {
+    
+    Usuario.findById(pet.param.id, function(err, usuario) {
+        
     	if(usuario){
-            Viaje.find({usuario: usuario}, function(error, viajes) {
+            Viaje.find({usuario: usuario}).populate('usuario').exec(function(error, viajes) {
                 if(error){
                     return resp.status(500)
                                     .send({message: error.message});
@@ -162,6 +159,6 @@ exports.deleteViaje = function(pet, resp){
         }
         else
         return resp.status(404)
-                        .send({message: "No existe el usuario con ese email"});
+                        .send({message: "No existe el usuario con id "+pet.params.id});
     });
   };

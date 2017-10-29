@@ -10,16 +10,22 @@ exports.ensureAuthenticated = function(req, res, next) {
   }
   
   var token = req.headers.authorization.split(" ")[1];
-  var payload = jwt.decode(token, config.TOKEN_SECRET);
+  try{
+    var payload = jwt.decode(token, config.TOKEN_SECRET);
+    
+    if(payload.exp <= moment().unix()) {
+       return res
+         .status(401)
+          .send({message: "El token ha expirado"});
+    }
   
-  if(payload.exp <= moment().unix()) {
-     return res
-     	.status(401)
-        .send({message: "El token ha expirado"});
+    
+    req.usuarioSesion = payload.sub;
+  
+    next(); 
+  } catch (error){
+    return res.status(500)
+                  .send({message: error.message});
   }
-
   
-  req.usuarioSesion = payload.sub;
-
-  next();
 }

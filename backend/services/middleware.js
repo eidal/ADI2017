@@ -21,6 +21,5 @@ exports.ensureAuthenticated = function(req, res, next) {
   
   req.usuarioSesion = payload.sub;
 
-  console.log('Id usuario sesion:'+req.usuarioSesion);
   next();
 }

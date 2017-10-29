@@ -14,7 +14,7 @@ var service = require('../services/services');
 exports.findAllUsuarios = function(pet, resp){
     Usuario.find(function(error, usuarios){
         if(error)
-            resp.send(500, error.message);
+            resp.status(500).send({message: error.message});
         resp.status(200)
                 .jsonp(usuarios);
         resp.end();
@@ -27,7 +27,7 @@ exports.findAllUsuarios = function(pet, resp){
 exports.findByIdUsuario = function(pet, resp){
     Usuario.findById(pet.params.id, function(error, usuario){
         if(error) 
-            return resp.send(500, error.message);
+            return resp.status(500).send({message: error.message});
         if(usuario){
             resp.status(200)
                     .jsonp(usuario);
@@ -35,7 +35,7 @@ exports.findByIdUsuario = function(pet, resp){
         }  
         else
             return resp.status(404)
-                            .send('No existe el usuario con id '+pet.params.id);
+                            .send({message: "No existe el usuario con id "+pet.params.id});
     });
 };
 
@@ -51,12 +51,22 @@ exports.addUsuario = function(pet, resp){
         contrasena: pet.body.contrasena,
         edad: pet.body.edad
     });
-    usuario.save(function(error, usuario){
-        if(error)
-            return resp.status(500).send(error.message);
-        resp.status(201)
-                .send({token: service.createToken(usuario)});
-        resp.end();
+
+    //al hacer test me he dado cuenta que el login es por email, no se debe repetir
+    Usuario.findOne({email: pet.body.email.toLowerCase()}, function(err, usuarioExiste) {
+        if(usuarioExiste){
+            return resp.status(400)
+                            .send({message: "Email en uso, seleccione otro"});
+        }
+        else{
+            usuario.save(function(error, usuario){
+                if(error)
+                    return resp.status(500).send({message: error.message});
+                resp.status(201)
+                        .send({token: service.createToken(usuario), id: usuario._id});
+                resp.end();
+            });
+        }
     });
 };
 
@@ -72,21 +82,21 @@ exports.updateUsuario = function(pet, resp){
                         usuario[key] = pet.body[key];
                     }
                 }
-                usuario.save(function(error){
+                usuario.save(function(error,usuario){
                     if(error)
-                        return resp.status(500).send(error.message);
+                        return resp.status(500).send({message: error.message});  
                     resp.status(204)
-                            .send('Datos de usuario modificados correctamente');
-                    resp.end();
+                            .jsonp(usuario);
+                        resp.end();
                 });
             }
             else
                 return resp.status(401)
-                                .send('No estás autorizado para realizar este cambio');
+                                .send({message: "No estás autorizado para realizar este cambio"});
         }
         else
             return resp.status(404).
-                            send('No existe el usuario con id '+pet.params.id);
+                            send({message: "No existe el usuario con id "+pet.params.id});
     });
 };
 
@@ -95,25 +105,24 @@ exports.updateUsuario = function(pet, resp){
  */
 exports.deleteUsuario = function(pet, resp){
     Usuario.findById(pet.params.id, function(error, usuario){
-        console.log('usuario.id: '+usuario.id);
         if(usuario){
             if (usuario.id==pet.usuarioSesion){
                 usuario.remove(function(error){
                     if(error){
                         return resp.status(500)
-                                        .send(error.message);
+                                        .send({message: error.message});
                     }
                     resp.status(200)
-                            .send('Usuario borrado correctamente');
+                            .send({message: "Usuario borrado correctamente"});
                 });
             }
             else
             return resp.status(401)
-                            .send('No estás autorizado para realizar este cambio');
+                            .send({message: "No estás autorizado para realizar este cambio"});
         }
         else
             return resp.status(404)
-                                .send('No existe el usuario con id '+pet.params.id);
+                                .send({message: "No existe el usuario con id "+pet.params.id});
     });
 };
 
@@ -130,15 +139,15 @@ exports.deleteUsuario = function(pet, resp){
     	if(usuario){
             if(usuario.contrasena.localeCompare(pet.body.contrasena)==0){
                 return resp
-        	        .status(200)
+                    .status(200)
                         .send({token: service.createToken(usuario)});
             }
             else
                 return resp.status(401)
-                                .send('Credenciales incorrectas pruebe de nuevo');
+                                .send({message: "Credenciales incorrectas pruebe de nuevo"});
         }
         else
         return resp.status(404)
-                        .send('No existe el usuario con email '+pet.body.email);
+                        .send({message: "No existe el usuario con ese email"});
     });
-};
+  };

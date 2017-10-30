@@ -4,8 +4,7 @@
     "description": "Proyecto para hacer API REST sencillo",
     "main": "app.js",
     "scripts":{
-       "start": "node app.js",     
-       "serve": "nodemon app.js" 
+       "start": "node app.js"
     },
     "dependencies": {
         "body-parser": "^1.18.2",

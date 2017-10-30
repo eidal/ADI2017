@@ -4,6 +4,9 @@ var Usuario = require('../models/usuario');
 //Cargamos servicio
 var service = require('../services/services');
 
+//Incluimos librería propia para procesar paginación
+var lib = require("../lib");
+
 /**
  *  CRUD'S
  */
@@ -12,7 +15,9 @@ var service = require('../services/services');
  * GET ALL- Todos los registros almacenados
  */
 exports.findAllUsuarios = function(pet, resp){
-    Usuario.find(function(error, usuarios){
+    //por defecto paginamos por 10 elementos
+    var pagina = lib.procesarPaginacion(pet.query.page);
+    Usuario.find().skip(pagina*10).limit(10).exec(function(error, usuarios){
         if(error)
             resp.status(500).send({message: error.message});
         resp.status(200)
@@ -135,7 +140,9 @@ exports.deleteUsuario = function(pet, resp){
   */
 
   exports.emailLogin = function(pet, resp) {
-	Usuario.findOne({email: pet.body.email.toLowerCase()}, function(err, usuario) {
+    //por defecto paginamos por 10 elementos
+    var pagina = lib.procesarPaginacion(pet.query.page);
+	Usuario.findOne({email: pet.body.email.toLowerCase()}).skip(pagina*10).limit(10).exec(function(err, usuario) {
     	if(usuario){
             if(usuario.contrasena.localeCompare(pet.body.contrasena)==0){
                 return resp

@@ -5,6 +5,9 @@ var Viaje = require('../models/viaje');
 //Cargamos servicio
 var service = require('../services/services');
 
+//Incluimos librería propia para procesar paginación
+var lib = require("../lib");
+
 /**
  *  CRUD'S
  */
@@ -13,7 +16,9 @@ var service = require('../services/services');
  * GET ALL- Todos los registros almacenados
  */
 exports.findAllViajes = function(pet, resp){
-    Viaje.find(function(error, viajes){
+    //por defecto paginamos por 10 elementos
+    var pagina = lib.procesarPaginacion(pet.query.page);
+    Viaje.find().skip(pagina*10).limit(10).exec(function(error, viajes){
         if(error)
             resp.status(500).send({message: error.message});
         resp.status(200)
@@ -142,7 +147,9 @@ exports.deleteViaje = function(pet, resp){
     Usuario.findById(pet.param.id, function(err, usuario) {
         
     	if(usuario){
-            Viaje.find({usuario: usuario}).populate('usuario').exec(function(error, viajes) {
+            //por defecto paginamos por 10 elementos
+            var pagina = lib.procesarPaginacion(pet.query.page);
+            Viaje.find({usuario: usuario}).populate('usuario').skip(pagina*10).limit(10).exec(function(error, viajes) {
                 if(error){
                     return resp.status(500)
                                     .send({message: error.message});

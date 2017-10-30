@@ -5,6 +5,9 @@ var Reserva = require('../models/reserva');
 //Cargamos servicio
 var service = require('../services/services');
 
+//Incluimos librería propia para procesar paginación
+var lib = require("../lib");
+
 /**
  *  CRUD'S
  */
@@ -146,7 +149,9 @@ exports.deleteReserva = function(pet, resp){
 exports.findAllReservasUsuario = function(pet, resp){
     Usuario.findById(pet.params.usuario, function(error, usuario) {
             if(usuario){
-                Reserva.find({'usuario': usuario}).populate('usuario').populate('viaje').exec(function(error, reservas){
+                //por defecto paginamos por 10 elementos
+                var pagina = lib.procesarPaginacion(pet.query.page);
+                Reserva.find({'usuario': usuario}).populate('usuario').populate('viaje').skip(pagina*10).limit(10).exec(function(error, reservas){
                     if(reservas){
                         resp.status(200)
                                 .jsonp(reservas);
@@ -166,7 +171,9 @@ exports.findAllReservasUsuario = function(pet, resp){
 exports.findAllReservasViaje = function(pet, resp){
         Viaje.findById(pet.params.viaje, function(error, viaje) {
             if(viaje){
-                Reserva.find({'viaje': viaje}).populate('usuario').populate('viaje').exec(function(error, reservas){
+                //por defecto paginamos por 10 elementos
+                var pagina = lib.procesarPaginacion(pet.query.page);
+                Reserva.find({'viaje': viaje}).populate('usuario').populate('viaje').skip(pagina*10).limit(10).exec(function(error, reservas){
                     if(reservas){
                         resp.status(200)
                                 .jsonp(reservas);

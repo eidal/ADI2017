@@ -4,9 +4,8 @@
     "description": "Proyecto para hacer API REST sencillo",
     "main": "app.js",
     "scripts":{
-       "start": "node index.js",     
-       "serve": "nodemon app.js",
-       "test": "./node_modules/mocha/bin/mocha"  
+       "start": "node app.js",     
+       "serve": "nodemon app.js" 
     },
     "dependencies": {
         "body-parser": "^1.18.2",

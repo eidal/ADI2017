@@ -452,13 +452,13 @@ paths:
           description: Error interno.
           schema:
             $ref: '#/definitions/Error'
-  '/api/viajes/usuario/:id':
+  '/api/viajes/usuario/:usuario':
     get:
       description: |
         - Devuelve todos los viajes de un usuario X.
         - Utiliza paginación añadiendo al final ?page=X
       parameters:
-        - name: id
+        - name: usuario
           in: query
           description: ID del usuario
           required: true

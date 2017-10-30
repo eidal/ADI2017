@@ -42,9 +42,6 @@ router.route('/usuarios/:id')
   .put(middleware.ensureAuthenticated,usuariosController.updateUsuario)
   .delete(middleware.ensureAuthenticated,usuariosController.deleteUsuario);
 
-router.route('/usuarios/viajes/:id')
-  .get(viajesController.findAllViajesUsuario);  
-
 router.route('/usuarios/login')
   .post(usuariosController.emailLogin);
 // ROUTES USUARIOS END
@@ -52,13 +49,16 @@ router.route('/usuarios/login')
 // ROUTES VIAJES BEGIN
 
 router.route('/viajes')
-.get(viajesController.findAllViajes)
-.post(middleware.ensureAuthenticated,viajesController.addViaje);
+  .get(viajesController.findAllViajes)
+  .post(middleware.ensureAuthenticated,viajesController.addViaje);
 
 router.route('/viajes/:id')
-.get(viajesController.findByIdViaje)
-.put(middleware.ensureAuthenticated,viajesController.updateViaje)
-.delete(middleware.ensureAuthenticated,viajesController.deleteViaje);
+  .get(viajesController.findByIdViaje)
+  .put(middleware.ensureAuthenticated,viajesController.updateViaje)
+  .delete(middleware.ensureAuthenticated,viajesController.deleteViaje);
+
+router.route('/viajes/usuarios/:usuario')
+  .get(viajesController.findAllViajesUsuario);  
 
 // ROUTES VIAJES END
 
@@ -72,10 +72,10 @@ router.route('/reservas/:id')
 .put(middleware.ensureAuthenticated,reservasController.updateReserva)
 .delete(middleware.ensureAuthenticated,reservasController.deleteReserva);
 
-router.route('/reservas/viaje/:viaje')
+router.route('/reservas/viajes/:viaje')
   .get(reservasController.findAllReservasViaje);
 
-router.route('/reservas/:usuario/:viaje')
+router.route('/reservas/usuarios/:usuario')
   .get(reservasController.findAllReservasUsuario);
 // ROUTES RESERVAS END
 

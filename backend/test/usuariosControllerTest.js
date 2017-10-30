@@ -68,7 +68,7 @@ describe("/api/usuarios", () => {
             .post("/api/usuarios")
             .send({
                 "nombre": "Usuario test 2",
-                "email": "usuariotest2@gmail.com",
+                "email": "usuariotest1@gmail.com",
                 "contrasena": "123456",
                 "edad": '42'
             })
@@ -240,12 +240,30 @@ describe("/api/usuarios/:id", () => {
               });
       });
 
-      it("[PUT] Modifica usuario por ID - Código 204 Cambio correcto",(done) => {
+      it("[PUT] Modifica usuario por ID - Código 401 Email en uso",(done) => {
         supertest
              .put("/api/usuarios/"+idUsuarioInsertado)
              .send({
                 "nombre": "Usuario test 3",
                 "email": "usuariotest4@gmail.com",
+                "contrasena": "123456",
+                "edad": '36'
+             })
+             .set('Content-type', 'application/json')
+             .set('Authorization','token '+tokenUsuario)
+             .end((err,res) => {
+                res.status.should.equal(401);
+                res.body.message.should.equal("Email ya existente, introduzca otro, por favor");
+                done();
+              });
+      });
+
+      it("[PUT] Modifica usuario por ID - Código 204 Cambio correcto",(done) => {
+        supertest
+             .put("/api/usuarios/"+idUsuarioInsertado)
+             .send({
+                "nombre": "Usuario test 3",
+                "email": "usuariotest8@gmail.com",
                 "contrasena": "123456",
                 "edad": '36'
              })

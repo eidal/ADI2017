@@ -82,17 +82,25 @@ exports.updateUsuario = function(pet, resp){
     Usuario.findById(pet.params.id, function(error, usuario) {
         if(usuario){
             if (usuario.id==pet.usuarioSesion){
-                for (var key in pet.body) {
-                    if (pet.body.hasOwnProperty(key)) {
-                        usuario[key] = pet.body[key];
+                Usuario.findOne({email: pet.body.email}, function(error,usuemail){
+                    if (usuemail && usuemail.id!=pet.usuarioSesion){
+                        return resp.status(401)
+                        .send({message: "Email ya existente, introduzca otro, por favor"});
                     }
-                }
-                usuario.save(function(error,usuario){
-                    if(error)
-                        return resp.status(500).send({message: error.message});  
-                    resp.status(204)
-                            .jsonp(usuario);
-                        resp.end();
+                    else {
+                        for (var key in pet.body) {
+                            if (pet.body.hasOwnProperty(key)) {
+                                usuario[key] = pet.body[key];
+                            }
+                        }
+                        usuario.save(function(error,usuario){
+                            if(error)
+                                return resp.status(500).send({message: error.message});  
+                            resp.status(204)
+                                    .jsonp(usuario);
+                                resp.end();
+                        });                            
+                    }
                 });
             }
             else

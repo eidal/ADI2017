@@ -144,8 +144,11 @@ exports.deleteViaje = function(pet, resp){
 
   exports.findAllViajesUsuario = function(pet, resp) {
     
-    Usuario.findById(pet.param.id, function(err, usuario) {
-        
+    Usuario.findById(pet.params.usuario, function(err, usuario) {
+        if(err){
+            return resp.status(500)
+                .send({message: error.message});
+        }
     	if(usuario){
             //por defecto paginamos por 10 elementos
             var pagina = lib.procesarPaginacion(pet.query.page);

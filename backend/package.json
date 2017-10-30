@@ -1,6 +1,13 @@
 {
-    "name": "hola_express",
+    "name": "api-rest-compartecoche",
     "version": "1.0.0",
+    "description": "Proyecto para hacer API REST sencillo",
+    "main": "app.js",
+    "scripts":{
+       "start": "node index.js",     
+       "serve": "nodemon app.js",
+       "test": "./node_modules/mocha/bin/mocha"  
+    },
     "dependencies": {
         "body-parser": "^1.18.2",
         "express": "^4.16.2",

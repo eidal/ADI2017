@@ -1,0 +1,673 @@
+swagger: '2.0'
+info:
+  version: '1.0'
+  title: ComparteCoche
+schemes:
+  - http
+  - https
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+definitions:
+  Usuario:
+    type: object
+    properties:
+      _id:
+        type: number
+        description: Identificador único
+      nombre:
+        type: string
+      email:
+        type: string
+      contrasena:
+        type: string
+      edad:
+        type: number
+  Viaje:
+    type: object
+    properties:
+      _id:
+        type: number
+        description: Identificador único
+      usuario:
+        $ref: '#/definitions/Usuario'
+      titulo:
+        type: string
+      descripcion:
+        type: string
+      desdeCiudad:
+        type: string
+      hastaCiudad:
+        type: string
+      fecha:
+        type: string
+      plazas:
+        type: number
+      importe:
+        type: number
+  Reserva:
+    type: object
+    properties:
+      _id:
+        type: number
+        description: Identificador único
+      usuario:
+        $ref: '#/definitions/Usuario'
+      viaje:
+        $ref: '#/definitions/Viaje'
+      plazas:
+        type: number
+  Error:
+    type: string
+    description: >-
+      Creo como modelo los mensajes de error que se pueden producir en los
+      modelos anteriores.
+    properties:
+      message:
+        type: string
+  Token:
+    type: string
+    description: >-
+      No es un modelo, pero en login y creación usuario devuelve token y luego
+      es usado en recursos necesitan sesión.
+    properties:
+      token:
+        type: string
+paths:
+  /api/usuarios:
+    get:
+      description: |
+        - Devuelve todos los usuarios del sistema.
+        - Utiliza paginación añadiendo al final ?page=X
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Usuario'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: |
+        - Crea un usuario.
+      parameters:
+        - name: nombre
+          in: query
+          description: Nombre del usuario
+          required: true
+          type: string
+        - name: email
+          in: query
+          description: Email del usuario
+          required: true
+          type: string
+        - name: contrasena
+          in: query
+          description: Contrasena del usuario
+          required: true
+          type: string
+        - name: edad
+          in: query
+          description: Anyo de nacimiento del usuario
+          required: true
+          type: number
+      responses:
+        '201':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Token'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+  '/api/usuarios/:id':
+    get:
+      description: |
+        - Devuelve un usuario concreto dada su ID.
+      parameters:
+        - name: id
+          in: query
+          description: ID del usuario
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Usuario'
+        '404':
+          description: No existe el usuario con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      description: >
+        - Actualiza al usuario dada su id. - La sesión la comprueba a partir de
+        un token
+      security:
+        - Bearer: []
+      parameters:
+        - name: nombre
+          in: query
+          description: Nombre del usuario
+          required: false
+          type: string
+        - name: email
+          in: query
+          description: Email del usuario
+          required: false
+          type: string
+        - name: contrasena
+          in: query
+          description: Contrasena del usuario
+          required: false
+          type: string
+        - name: edad
+          in: query
+          description: Edad usuario
+          required: false
+          type: number
+      responses:
+        '204':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Usuario'
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No existe el usuario con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      description: |
+        - Borra un usuario dado su ID.
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: ID del usuario
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No existe el usuario con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/Error'
+  /usuarios/login:
+    post:
+      description: |
+        - Devuelve token para logarse aplicación.
+      parameters:
+        - name: email
+          in: query
+          description: email del usuario
+          required: true
+          type: number
+        - name: contrasena
+          in: query
+          description: contrasena del usuario
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Devuelvo token
+          schema:
+            $ref: '#/definitions/Token'
+        '401':
+          description: Credenciales incorrectas.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No existe usuario con ese email.
+          schema:
+            $ref: '#/definitions/Error'
+  /api/viajes:
+    get:
+      description: |
+        - Devuelve todos los viajes.
+        - Utiliza paginación añadiendo al final ?page=X
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Viaje'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: |
+        - Crea un viaje nuevo.
+      security:
+        - Bearer: []
+      parameters:
+        - name: titulo
+          in: query
+          description: Título del viaje
+          required: true
+          type: string
+        - name: descripcion
+          in: query
+          description: Descripción del viaje
+          required: true
+          type: string
+        - name: desdeCiudad
+          in: query
+          description: Ciudad origen viaje
+          required: true
+          type: string
+        - name: hastaCiudad
+          in: query
+          description: Ciudad destino viaje
+          required: true
+          type: string
+        - name: fecha
+          in: query
+          description: Fecha viaje
+          required: true
+          type: string
+        - name: plazas
+          in: query
+          description: Plazas disponibles viaje
+          required: true
+          type: number
+        - name: importe
+          in: query
+          description: Importe por plaza viaje
+          required: true
+          type: number
+      responses:
+        '201':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Viaje'
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Error de sesión volver a intentar.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+  '/api/viajes/:id':
+    get:
+      description: |
+        - Devuelve un viaje concreto dada su ID.
+      parameters:
+        - name: id
+          in: query
+          description: ID del viaje
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Viaje'
+        '404':
+          description: No existe el viaje con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      description: |
+        - Actualiza el viaje a partir de su id.
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: ID del vije
+          required: true
+          type: number
+        - name: titulo
+          in: query
+          description: Título del viaje
+          required: false
+          type: string
+        - name: descripcion
+          in: query
+          description: Descripción del viaje
+          required: false
+          type: string
+        - name: desdeCiudad
+          in: query
+          description: Ciudad origen viaje
+          required: false
+          type: string
+        - name: hastaCiudad
+          in: query
+          description: Ciudad destino viaje
+          required: false
+          type: string
+        - name: fecha
+          in: query
+          description: Fecha viaje
+          required: false
+          type: string
+        - name: plazas
+          in: query
+          description: Plazas disponibles viaje
+          required: false
+          type: number
+        - name: importe
+          in: query
+          description: Importe por plaza viaje
+          required: false
+          type: number
+      responses:
+        '204':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Viaje'
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No existe el viaje con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      description: |
+        - Borra un viaje a partir de su ID.
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: ID del viaje
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No existe el viaje con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/Error'
+  '/api/viajes/usuario/:id':
+    get:
+      description: |
+        - Devuelve todos los viajes de un usuario X.
+        - Utiliza paginación añadiendo al final ?page=X
+      parameters:
+        - name: id
+          in: query
+          description: ID del usuario
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Viaje'
+        '404':
+          description: No existe el usuario con id X
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+  /api/reservas:
+    post:
+      description: |
+        - Añadir una reserva.
+      security:
+        - Bearer: []
+      parameters:
+        - name: usuario
+          in: query
+          description: ID del usuario
+          required: true
+          type: number
+        - name: viaje
+          in: query
+          description: ID del viaje
+          required: true
+          type: number
+        - name: plazas
+          in: query
+          description: Número de plazas a reservar
+          required: true
+          type: number
+      responses:
+        '201':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Reserva'
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: >-
+            No existe el viaje con id X o bien si el número de plazas mayor a
+            las del viaje.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+  '/api/reservas/:id':
+    get:
+      description: |
+        - Devuelve una reserva concreta dada su ID.
+      parameters:
+        - name: id
+          in: query
+          description: ID de la reserva
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Reserva'
+        '404':
+          description: No existe la reserva con id X
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      description: |
+        - Modifica los datos de la reserva X.
+      security:
+        - Bearer: []
+      parameters:
+        - name: viaje
+          in: query
+          description: ID de la reserva
+          required: true
+          type: number
+        - name: plazas
+          in: query
+          description: número de plazas a reservar del viaje.
+          required: true
+          type: number
+      responses:
+        '204':
+          description: Petición y respuesta correcta.
+          schema:
+            $ref: '#/definitions/Reserva'
+        '400':
+          description: >-
+            No se puede cambiar el viaje de la reserva o el número de plazas
+            excede a las disponibles.
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No existe la reserva con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      description: |
+        - Borra una reserva a partir de su ID.
+      security:
+        - Bearer: []
+      parameters:
+        - name: id
+          in: query
+          description: ID de la reserva
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+        '401':
+          description: No estás autorizado para realizar el cambio.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Tu petición no tiene cabecera autorización.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No existe la reserva con id X.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/Error'
+  '/api/reservas/viaje/:viaje':
+    get:
+      description: |
+        - Devuelve todas las reservas de un viaje X.
+        - Utiliza paginación añadiendo al final ?page=X
+      parameters:
+        - name: viaje
+          in: query
+          description: ID del viaje
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Reserva'
+        '404':
+          description: No existe el viaje con id X
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'
+  '/api/reservas/usuario/:usuario':
+    get:
+      description: |
+        - Devuelve todas las reservas de un usuario X.
+        - Utiliza paginación añadiendo al final ?page=X
+      parameters:
+        - name: usuario
+          in: query
+          description: ID del usuario
+          required: true
+          type: number
+      responses:
+        '200':
+          description: Petición y respuesta correcta.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Reserva'
+        '404':
+          description: No existe el viaje con id X
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Error interno
+          schema:
+            $ref: '#/definitions/Error'

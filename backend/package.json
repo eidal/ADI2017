@@ -11,7 +11,7 @@
         "express": "^4.16.2",
         "heroku-cli": "^6.14.36",
         "jwt-simple": "^0.5.1",
-        "moment": "^2.19.1",
+        "moment": "^2.29.2",
         "mongodb-autoincrement": "^1.0.1",
         "mongoose": "^5.7.5",
         "nodemon": "^1.12.1"
